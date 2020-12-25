@@ -456,6 +456,7 @@ function baseCreateRenderer(
     optimized = false
   ) => {
     // patching & not same type, unmount old tree
+    // ! 如果存在新旧节点, 且新旧节点类型不同，则销毁旧节点
     if (n1 && !isSameVNodeType(n1, n2)) {
       anchor = getNextHostNode(n1)
       unmount(n1, parentComponent, parentSuspense, true)
@@ -470,12 +471,15 @@ function baseCreateRenderer(
     const { type, ref, shapeFlag } = n2
     switch (type) {
       case Text:
+        // ! 处理文本节点
         processText(n1, n2, container, anchor)
         break
       case Comment:
+        // ! 处理注释节点
         processCommentNode(n1, n2, container, anchor)
         break
       case Static:
+        // ! 处理静态节点
         if (n1 == null) {
           mountStaticNode(n2, container, anchor, isSVG)
         } else if (__DEV__) {
@@ -483,6 +487,7 @@ function baseCreateRenderer(
         }
         break
       case Fragment:
+        // ! 处理 Fragment 元素
         processFragment(
           n1,
           n2,
@@ -496,6 +501,7 @@ function baseCreateRenderer(
         break
       default:
         if (shapeFlag & ShapeFlags.ELEMENT) {
+          // ! 处理普通 DOM 元素
           processElement(
             n1,
             n2,
@@ -507,6 +513,7 @@ function baseCreateRenderer(
             optimized
           )
         } else if (shapeFlag & ShapeFlags.COMPONENT) {
+          // ! 处理组件
           processComponent(
             n1,
             n2,
@@ -518,6 +525,7 @@ function baseCreateRenderer(
             optimized
           )
         } else if (shapeFlag & ShapeFlags.TELEPORT) {
+          // ! 处理 TELEPORT
           ;(type as typeof TeleportImpl).process(
             n1 as TeleportVNode,
             n2 as TeleportVNode,
@@ -530,6 +538,7 @@ function baseCreateRenderer(
             internals
           )
         } else if (__FEATURE_SUSPENSE__ && shapeFlag & ShapeFlags.SUSPENSE) {
+          // ! 处理 SUSPENSE
           ;(type as typeof SuspenseImpl).process(
             n1,
             n2,
@@ -1196,6 +1205,7 @@ function baseCreateRenderer(
     optimized: boolean
   ) => {
     if (n1 == null) {
+      // ! 挂载组件
       if (n2.shapeFlag & ShapeFlags.COMPONENT_KEPT_ALIVE) {
         ;(parentComponent!.ctx as KeepAliveContext).activate(
           n2,
@@ -1216,6 +1226,7 @@ function baseCreateRenderer(
         )
       }
     } else {
+      // ! 更新组件
       updateComponent(n1, n2, optimized)
     }
   }
@@ -1229,6 +1240,7 @@ function baseCreateRenderer(
     isSVG,
     optimized
   ) => {
+    // ! 创建组件实例
     const instance: ComponentInternalInstance = (initialVNode.component = createComponentInstance(
       initialVNode,
       parentComponent,
@@ -1253,6 +1265,7 @@ function baseCreateRenderer(
     if (__DEV__) {
       startMeasure(instance, `init`)
     }
+    // ! 设置组件实例
     setupComponent(instance)
     if (__DEV__) {
       endMeasure(instance, `init`)
@@ -1271,7 +1284,7 @@ function baseCreateRenderer(
       }
       return
     }
-
+    // ! 设置并运行带副作用的渲染函数
     setupRenderEffect(
       instance,
       initialVNode,
@@ -2188,10 +2201,12 @@ function baseCreateRenderer(
 
   const render: RootRenderFunction = (vnode, container) => {
     if (vnode == null) {
+      // ! 第一个参数 vnode 为空，则执行销毁组件的逻辑
       if (container._vnode) {
         unmount(container._vnode, null, null, true)
       }
     } else {
+      // ! 创建或者更新组件的逻辑
       patch(container._vnode || null, vnode, container)
     }
     flushPostFlushCbs()
@@ -2220,6 +2235,8 @@ function baseCreateRenderer(
     >)
   }
 
+  // ! 返回一个渲染器对象，有三个属性：
+  // ! render - 渲染函数， hydrate - 用于ssr， createApp - 实例创建函数
   return {
     render,
     hydrate,

@@ -29,6 +29,7 @@ let renderer: Renderer<Element> | HydrationRenderer
 
 let enabledHydration = false
 
+// ! 获取一个renderer渲染器实例
 function ensureRenderer() {
   return renderer || (renderer = createRenderer<Node, Element>(rendererOptions))
 }
@@ -51,6 +52,7 @@ export const hydrate = ((...args) => {
 }) as RootHydrateFunction
 
 export const createApp = ((...args) => {
+  // ! 创建App对象
   const app = ensureRenderer().createApp(...args)
 
   if (__DEV__) {
@@ -58,6 +60,7 @@ export const createApp = ((...args) => {
   }
 
   const { mount } = app
+  // ! 重写mount方法
   app.mount = (containerOrSelector: Element | ShadowRoot | string): any => {
     const container = normalizeContainer(containerOrSelector)
     if (!container) return
